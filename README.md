@@ -6,15 +6,15 @@ Note: May have to change implementation for the "directory" file, as Pickle take
 Big PM guy here, enjoy this text-based SCRUM board!
 
 To do:
-  -Menus/interfaces: all
-  Implementations:
-    -Login
-    -Adding an account
-    -Retrieving details
-    -Modifying an account
-    -Deleting an account
-    -Change master password
-   Memory "safety"
+Menus/interfaces: all
+Implementations:
+Login
+Adding an account
+Retrieving details
+Modifying an account
+Deleting an account
+Change master password
+Memory "safety"
   
 
 
