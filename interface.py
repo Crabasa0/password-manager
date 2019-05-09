@@ -28,10 +28,20 @@ def main_menu():
     print('(6) Change master password')
     print('(7) Exit')
     choice = input()
-    pass
+    options = {
+    '1' : retrieve_info_menu,
+    '2' : register_menu,
+    '3' : view_accts_menu,
+    '4' : modify_acct_menu,
+    '5' : delete_acct_menu,
+    '6' : change_master_pw_menu
+    }
+    options.get(choice, exit)()
+    #repeat after me: First. Class. Values.
+
 
 def retrieve_info_menu():
-    pass
+    print('It works!')
 
 def register_menu():
     pass
