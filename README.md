@@ -18,8 +18,9 @@ Memory "safety"
 
 In progress:
 
-Interfaces,
+Interfaces (stubbed out)
+
+
+Complete: 
 login,
 setup
-
-Complete:
