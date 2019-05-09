@@ -20,6 +20,6 @@ In progress:
 
 Interfaces,
 login,
-init
+setup
 
 Complete:
