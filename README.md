@@ -19,7 +19,7 @@ Change master password
 In progress:
 
 Interfaces (stubbed out), 
-Memory "safety" (locked to MM)
+Memory "safety" (locked to MM, only avaliable on Linux)
 
 
 Complete: 
