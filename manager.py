@@ -22,7 +22,7 @@ def mlockall(flags=MCL_CURRENT|MCL_FUTURE):
 """
 
 def run():
-    mlockall()
+    #mlockall()
     if isfile(impl.VERIFICATION_HASH_URL):
         interface.login_menu()
     else:
