@@ -12,13 +12,14 @@ Retrieving details
 Modifying an account
 Deleting an account
 Change master password
-Memory "safety"
+
   
 
 
 In progress:
 
-Interfaces (stubbed out)
+Interfaces (stubbed out), 
+Memory "safety" (locked to MM)
 
 
 Complete: 
