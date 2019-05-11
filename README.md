@@ -24,4 +24,5 @@ Add an account
 
 Complete: 
 login,
-setup
+setup,
+random password generation
