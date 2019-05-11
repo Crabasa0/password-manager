@@ -1,0 +1,14 @@
+[  
+   {  
+      "Name":"Netflix",
+      "Url":"netflix.com",
+      "Username":"myUsername",
+      "PW_index":0
+   },
+   {  
+      "Name":"HBO Go",
+      "Url":"hbogo.com",
+      "Username":"myUsername",
+      "PW_index":2
+   }
+]
