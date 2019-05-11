@@ -26,3 +26,7 @@ Complete:
 login,
 setup,
 random password generation
+
+
+Topics to investigate:
+memoryview as a method to directly access memory and avoid copying
