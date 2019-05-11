@@ -7,7 +7,6 @@ Big PM guy here, enjoy this text-based SCRUM board!
 
 To do:
 
-Adding an account
 Retrieving details
 Modifying an account
 Deleting an account
@@ -19,7 +18,8 @@ Change master password
 In progress:
 
 Interfaces (stubbed out), 
-Memory "safety" (locked to MM, only avaliable on Linux)
+Memory "safety",
+Add an account
 
 
 Complete: 
