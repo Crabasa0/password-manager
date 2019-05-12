@@ -84,7 +84,7 @@ def check_good_pw(p):
 
 
 #registering an account
-def register_acct(name, url, username, password):#TODO
+def register_acct(name, url, username, password):
     global acct_directory
     global enc_key
     global mac_key
@@ -111,9 +111,6 @@ def register_acct(name, url, username, password):#TODO
     dir_file.write(enc_accounts)
     dir_file.close()
 
-    #with open(DIRECTORY_URL, 'w+') as outfile:
-     #   json.dump(enc_accounts, outfile)
-    #now encrypt the file
     pass
 
 
@@ -169,7 +166,7 @@ def load_directory():
     #load the list
     acct_directory = json.loads(decrypted)
 
-def add_pw_to_pfile(password): #NEEDS TO BE FINISHED
+def add_pw_to_pfile(password): #SHOULD BE CHECKED
     #convert password string to bytes for encryption
     pb = bytes(password, 'utf-8')
     #pad to create password block(s)
@@ -202,7 +199,7 @@ def selective_encrypt(data, index): #Finished, i think
     return encrypted
 
 
-def retrieve_nonce(): #TODO, obviously
+def retrieve_nonce():
 #do we want to store the nonce as plaintext?
     if not isfile(PFILE_NONCE_URL):
         nonce = get_random_bytes(8)
