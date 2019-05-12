@@ -20,9 +20,6 @@ enc_salt = '90abcdef'
 
 VERIFICATION_HASH_URL = 'verification-hash'
 
-UC = 'QWERTYUIOPASDFGHJKLZXCVBNM'
-LC = 'qwertyuiopasdfghjklzxcvbnm'
-
 RAND_PW_SIZE = 14
 
 DIRECTORY_URL = 'directory'
@@ -46,7 +43,7 @@ acct_directory:list = None
 
 def check_login_valid():
     td = datetime.datetime.now()
-    sess_len = td.seconds
+    sess_len = td.seconds # is this checking the seconds timestamp or the length of the session in seconds? It seems like the former. If so, how is this helpful?
     return sess_len > 0 and sess_len < 300
 
 def verify_password(p):
@@ -72,11 +69,11 @@ def setup(p):
 
 def check_good_pw(p):
     good_len = len(p) >= 10
-    good_uc = any(char in UC for char in p)
-    good_lc = any(char in LC for char in p)
+    good_uc = any(char in string.uppercase for char in p)
+    good_lc = any(char in string.lowercase for char in p)
     good_sc = any(char in string.punctuation for char in p)
     good_num = any(char in string.digits for char in p)
-    return good_len and good_uc and good_lc and good_sc
+    return good_len and good_uc and good_lc and good_sc and good_num
 
 
 #registering an account
@@ -90,7 +87,7 @@ def register_acct(name, url, username, password):#TODO
     pass
 
 def get_random_pw():
-    char_source = string.ascii_letters + string.digits + string.punctuation
+    char_source = string.ascii_letters + ' ' + string.digits + string.punctuation
     pw_char_list = ['0']*RAND_PW_SIZE   #init at the correct size to prevent copies
     for i in range(RAND_PW_SIZE):
         pw_char_list[i] = secrets.choice(char_source)

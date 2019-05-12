@@ -10,8 +10,10 @@ def login_menu():
     print('Hello, ' + getpass.getuser())
     good_login = False
     while not good_login:
-        p = getpass.getpass()
+        p = getpass.getpass() # if we ever use stdout for useful output, we should use getpass.getpass(stream=sys.stderr) so that the password doesn't get output as part of stdout
         good_login = impl.verify_password(p)
+
+# do we want to display a message if the password fails?
 
     impl.derive_enc_key(p)
     main_menu()
@@ -35,8 +37,8 @@ def main_menu():
     '4' : modify_acct_menu,
     '5' : delete_acct_menu,
     '6' : change_master_pw_menu
-    }
-    options.get(choice, exit)()
+    } # should we make an option 7 that exits the application? With safe deletes and everything?
+    options.get(choice, exit)() #should that second pair of parentheses be inside the first? So options.get(choice, exit())
     #repeat after me: First. Class. Values.
 
 
