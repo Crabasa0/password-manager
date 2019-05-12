@@ -16,7 +16,6 @@ def login_menu():
     impl.derive_enc_key(p)
     main_menu()
 
-    #pass
 
 def main_menu():
     print('Main Menu')
@@ -36,8 +35,10 @@ def main_menu():
     '5' : delete_acct_menu,
     '6' : change_master_pw_menu
     } # should we make an option 7 that exits the application? With safe deletes and everything?
-    options.get(choice, exit)() #should that second pair of parentheses be inside the first? So options.get(choice, exit())
+    options.get(choice, exit)()
     #repeat after me: First. Class. Values.
+    #Are we sure we want the default to be exit?
+    #I think we want to make sure that things get safely overwritten so this might not be best
 
 
 def retrieve_info_menu():
@@ -48,15 +49,15 @@ def retrieve_info_menu():
         if lookup_choice == 'name':
             is_valid_choice = True
             account_name = input('Service Name: ')
-            impl.search_by_service_name(account_name)
+            results = impl.search_by_service_name(account_name)
         elif lookup_choice == 'url':
             is_valid_choice = True
             account_url = input('Service URL: ')
-            impl.search_by_url(account_url)
+            results = impl.search_by_url(account_url)
         elif lookup_choice == 'user':
             is_valid_choice = True
             account_username = input('Username: ')
-            impl.search_by_username(account_username)
+            results = impl.search_by_username(account_username)
 
 
 def register_menu():
@@ -71,9 +72,11 @@ def register_menu():
         password = impl.get_random_pw()
     impl.register_acct(service_name, service_url, username, password)
 
+
 def view_accts_menu():
     print('All Acounts:')
     impl.print_accts()
+
 
 def modify_acct_menu():
     print('Modify an Account')
@@ -83,35 +86,43 @@ def modify_acct_menu():
         if lookup_choice == 'name':
             is_valid_choice = True
             account_name = input('Service Name: ')
-            impl.search_by_service_name(account_name)
+            results = impl.search_by_service_name(account_name)
         elif lookup_choice == 'url':
             is_valid_choice = True
             account_url = input('Service URL: ')
-            impl.search_by_url(account_url)
+            results = impl.search_by_url(account_url)
         elif lookup_choice == 'user':
             is_valid_choice = True
             account_username = input('Username: ')
-            impl.search_by_username(account_username)
-    pass
+            results = impl.search_by_username(account_username)
+
 
 def delete_acct_menu():
     print('Delete an Account')
+    results = []
     is_valid_choice = False
     while not is_valid_choice:
         lookup_choice = input('Look up account by service name (name), service URL (url), or username (user)?')
         if lookup_choice == 'name':
             is_valid_choice = True
             account_name = input('Service Name: ')
-            impl.search_by_service_name(account_name)
+            results = impl.search_by_service_name(account_name)
         elif lookup_choice == 'url':
             is_valid_choice = True
             account_url = input('Service URL: ')
-            impl.search_by_url(account_url)
+            results = impl.search_by_url(account_url)
         elif lookup_choice == 'user':
             is_valid_choice = True
             account_username = input('Username: ')
-            impl.search_by_username(account_username)
-    pass
+            results = impl.search_by_username(account_username)
+
+    print('Results: ')
+    for i in range(0, len(results)):
+        print(i, ': ', impl.acct_directory[results[i]])
+    account_to_delete = input('Type the number of the account you wish to delete: ')
+    index_to_delete = results[int(account_to_delete)]
+    impl.delete_acct(index_to_delete)
+
 
 def change_master_pw_menu():
     pass

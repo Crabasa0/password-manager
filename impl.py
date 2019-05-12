@@ -85,16 +85,22 @@ def check_good_pw(p):
 
 #registering an account
 def register_acct(name, url, username, password):
+	global acct_directory
+
+	if not acct_directory:
+		load_directory()
+	index = get_pfile_len()
+	new_entry = {"Name":name, "URL":url, "Username":username, "PW_index":index}
+	add_pw_to_pfile(password)
+	acct_directory.append(new_entry)
+
+	write_acct_info_file()
+
+
+def write_acct_info_file():
     global acct_directory
     global enc_key
     global mac_key
-
-    if not acct_directory:
-        load_directory()
-    index = get_pfile_len()
-    new_entry = {"Name":name, "URL":url, "Username":username, "PW_index":index}
-    add_pw_to_pfile(password)
-    acct_directory.append(new_entry)
 
     plaintext = pad(json.dumps(acct_directory).encode('utf-8'), AES.block_size)
     iv = get_random_bytes(AES.block_size)
@@ -110,8 +116,6 @@ def register_acct(name, url, username, password):
     dir_file = open(DIRECTORY_URL, 'wb+')
     dir_file.write(enc_accounts)
     dir_file.close()
-
-    pass
 
 
 def get_random_pw():
@@ -220,33 +224,64 @@ def print_accts():
     if not acct_directory:
         load_directory()
     for i in range(0,len(acct_directory)):
-        print ('Service: ', acct_directory[i]['Name'])
-        print ('URL: ', acct_directory[i]['URL'])
-        print ('Username: ', acct_directory[i]['Username'])
+        print('Service: ', acct_directory[i]['Name'])
+        print('URL: ', acct_directory[i]['URL'])
+        print('Username: ', acct_directory[i]['Username'])
+        print('')
 
 
 def search_by_service_name(name):
     global acct_directory
+    accts_that_match = []
 
     if not acct_directory:
-        load_directory()
-    pass
+    	load_directory()
+
+    for i in range(0, len(acct_directory)):
+    	if acct_directory[i]['Name'] == name:
+    		accts_that_match.append(i)
+    
+    return accts_that_match
 
 
 def search_by_url(url):
     global acct_directory
+    accts_that_match = []
 
     if not acct_directory:
-        load_directory()
-    pass
+    	load_directory()
+
+    for i in range(0, len(acct_directory)):
+    	if acct_directory[i]['URL'] == url:
+    		accts_that_match.append(i)
+    
+    return accts_that_match
 
 
 def search_by_username(username):
     global acct_directory
+    accts_that_match = []
 
     if not acct_directory:
-        load_directory()
-    pass
+    	load_directory()
+
+    for i in range(0, len(acct_directory)):
+    	if acct_directory[i]['Username'] == username:
+    		accts_that_match.append(i)
+
+    return accts_that_match
+
+
+def delete_acct(acct_index):
+	global acct_directory
+	if not acct_directory:
+		load_directory()
+	
+	pw_idx = int(acct_directory[acct_index][PW_index])
+	del acct_directory[acct_index]
+	write_acct_info_file()
+    #Also delete the password from the password file
+    #Then reencrypt everything
 
 
 pass
