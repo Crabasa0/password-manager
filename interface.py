@@ -58,7 +58,8 @@ def register_menu():
     impl.register_acct(service_name, service_url, username, password)
 
 def view_accts_menu():
-    pass
+    print('All Acounts:')
+    impl.print_accts()
 
 def modify_acct_menu():
     pass

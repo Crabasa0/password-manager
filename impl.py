@@ -191,4 +191,13 @@ def retrieve_nonce(): #TODO, obviously
         return nonce
 
 
+def print_accts():
+	if not acct_directory:
+        load_directory()
+    #do we want to alphabetize by service name?
+    for i in range(0,len(acct_directory)-1):
+   		print 'Service: ', acct_directory[i]['Name']
+   		print 'Username: ', acct_directory[i]['Username']
+   		print 'URL: ', acct_directory[i]['Url']
+
 pass
