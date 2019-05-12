@@ -224,4 +224,17 @@ def print_accts():
         print ('URL: ', acct_directory[i]['URL'])
         print ('Username: ', acct_directory[i]['Username'])
 
+
+def search_by_service_name(name):
+    pass
+
+
+def search_by_url(url):
+    pass
+
+
+def search_by_username(username):
+    pass
+
+
 pass

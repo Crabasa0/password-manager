@@ -43,13 +43,29 @@ def main_menu():
 
 
 def retrieve_info_menu():
-    print('It works!')
+    print('Retrieve an Account')
+    is_valid_choice = False
+    while not is_valid_choice:
+        lookup_choice = input('Look up account by service name (name), service URL (url), or username (user)')
+        if lookup_choice == 'name':
+            is_valid_choice = True
+            account_name = input('Service Name: ')
+            impl.search_by_service_name(account_name)
+        elif lookup_choice == 'url':
+            is_valid_choice = True
+            account_url = input('Service URL: ')
+            impl.search_by_url(account_url)
+        elif lookup_choice == 'user':
+            is_valid_choice = True
+            account_username = input('Username: ')
+            impl.search_by_username(account_username)
+
 
 def register_menu():
     print('Register a new account')
-    service_name = input('Service Name:')
-    service_url = input('URL:')
-    username = input('Username:')
+    service_name = input('Service Name: ')
+    service_url = input('URL: ')
+    username = input('Username: ')
     use_own_pw = input('Use own password (y) or random password (anything else)?')
     if use_own_pw == 'y':
         password = getpass.getpass()
@@ -62,9 +78,41 @@ def view_accts_menu():
     impl.print_accts()
 
 def modify_acct_menu():
+    print('Modify an Account')
+    is_valid_choice = False
+    while not is_valid_choice:
+        lookup_choice = input('Look up account by service name (name), service URL (url), or username (user)?')
+        if lookup_choice == 'name':
+            is_valid_choice = True
+            account_name = input('Service Name: ')
+            impl.search_by_service_name(account_name)
+        elif lookup_choice == 'url':
+            is_valid_choice = True
+            account_url = input('Service URL: ')
+            impl.search_by_url(account_url)
+        elif lookup_choice == 'user':
+            is_valid_choice = True
+            account_username = input('Username: ')
+            impl.search_by_username(account_username)
     pass
 
 def delete_acct_menu():
+    print('Delete an Account')
+    is_valid_choice = False
+    while not is_valid_choice:
+        lookup_choice = input('Look up account by service name (name), service URL (url), or username (user)?')
+        if lookup_choice == 'name':
+            is_valid_choice = True
+            account_name = input('Service Name: ')
+            impl.search_by_service_name(account_name)
+        elif lookup_choice == 'url':
+            is_valid_choice = True
+            account_url = input('Service URL: ')
+            impl.search_by_url(account_url)
+        elif lookup_choice == 'user':
+            is_valid_choice = True
+            account_username = input('Username: ')
+            impl.search_by_username(account_username)
     pass
 
 def change_master_pw_menu():
