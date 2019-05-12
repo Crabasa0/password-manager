@@ -33,8 +33,6 @@ key:bytes = None
 login_time = None
 acct_directory:list = None
 
-#When we logout, we are going to have to copy acct_directory to the proper file
-
 #login
 #potential security improvements:
 #   1. Move these functions into interface to reduce password copies on stack
@@ -45,7 +43,7 @@ acct_directory:list = None
 
 def check_login_valid():
     td = datetime.datetime.now()
-    sess_len = td.seconds # is this checking the seconds timestamp or the length of the session in seconds? It seems like the former. If so, how is this helpful?
+    sess_len = td.seconds #is this checking the seconds timestamp or the length of the session in seconds? It seems like the former. If so, how is this helpful?
     return sess_len > 0 and sess_len < 300
 
 def verify_password(p):
@@ -68,7 +66,7 @@ def setup(p):
     ver_key = PBKDF2(p, ver_salt, count=10000)
     vhash_file = open(VERIFICATION_HASH_URL, 'wb+')
     vhash_file.write(ver_key)
-    #do we want to close this file?
+    #don't we want to close this file?
 
 def check_good_pw(p):
     good_len = len(p) >= 10
@@ -86,8 +84,13 @@ def register_acct(name, url, username, password):#TODO
     index = get_pfile_len()
     new_entry = {"Name":name, "URL":url, "Username":username, "PW_index":index}
     add_pw_to_pfile(password)
-    acct_directory.append() #do we need to specify that we're appending new_entry?
+    acct_directory.append(new_entry)
+
+    with open(DIRECTORY_URL, 'wb+') as outfile:
+        json.dump(acct_directory, outfile)
+    #now encrypt the file
     pass
+
 
 def get_random_pw():
     char_source = string.ascii_letters + ' ' + string.digits + string.punctuation
@@ -148,15 +151,11 @@ def add_pw_to_pfile(password): #NEEDS TO BE FINISHED
     index = get_pfile_len()
     new_ct = selective_encrypt(pb_padded, index)
     #append the encrypted block to the password file
-    if not isfile(PFILE_URL):
-    	#create the pfile
-    	#write new_ct to the pfile
-    else:
-    	pfile = open(PFILE_URL, 'wb')
-    	pfile.write(new_ct)
-    	pfile.close()
-    #do we want to increment the nonce here? Or are we just incrementing the index?
+    pfile = open(PFILE_URL, 'ab+')
+    pfile.write(new_ct)
+    pfile.close()
     pass
+    #do we want to have a MAC here?
 
 #returns the length of the password file in AES blocks
 def get_pfile_len():
@@ -167,8 +166,6 @@ def get_pfile_len():
         pfile_ct = pfile.read()
         pfile.close()
         return len(pfile_ct)/AES.block_size
-
-        #Should we have a MAC on the pfile?
 
 
 def selective_encrypt(data, index): #Finished, i think
@@ -182,7 +179,9 @@ def retrieve_nonce(): #TODO, obviously
 #do we want to store the nonce as plaintext?
     if not isfile(PFILE_NONCE_URL):
    		nonce = Random.get_random_bytes(8)
-   		#create the nonce file and write to it
+        nfile = open(PFILE_NONCE_URL, 'wb+')
+        nfile.write(nonce)
+        nfile.close()
         return nonce
     else:
     	nfile = open(PFILE_NONCE_URL, 'rb')
