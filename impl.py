@@ -6,6 +6,7 @@ from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Cipher import AES
 from Crypto.Hash import HMAC, SHA256
 from Crypto.Util.Padding import pad, unpad
+from Crypto.Random import get_random_bytes
 
 import secrets
 from os.path import isfile
@@ -26,6 +27,7 @@ RAND_PW_SIZE = 14
 
 DIRECTORY_URL = 'directory'
 PFILE_URL = 'pfile'
+PFILE_NONCE_URL = 'pfile-nonce'
 
 MAC_LENGTH = 32
 
@@ -79,7 +81,7 @@ def check_good_pw(p):
 
 #registering an account
 
-def register_acct(name, url, username, password):
+def register_acct(name, url, username, password):#TODO
     if not acct_directory:
         load_directory()
     new_entry = {"Name":name, "URL":url, "Username":username}
@@ -89,7 +91,7 @@ def register_acct(name, url, username, password):
 
 def get_random_pw():
     char_source = string.ascii_letters + string.digits + string.punctuation
-    pw_char_list = ['0']*RAND_PW_SIZE
+    pw_char_list = ['0']*RAND_PW_SIZE   #init at the correct size to prevent copies
     for i in range(RAND_PW_SIZE):
         pw_char_list[i] = secrets.choice(char_source)
     rand_pw = ''.join(pw_char_list)
@@ -136,7 +138,7 @@ def load_directory():
     #load the list
     acct_directory = json.loads(decrypted)
 
-def add_pw_to_pfile(password):
+def add_pw_to_pfile(password): #NEEDS TO BE FINISHED
     #convert password string to bytes for encryption
     pb = bytes(password, 'utf-8')
     #pad to create password block(s)
@@ -148,7 +150,7 @@ def add_pw_to_pfile(password):
     pass
 
 #returns the length of the password file in AES blocks
-def get_pfile_len():
+def get_pfile_len(): #NEEDS TO BE FINISHED
     if not isfile(PFILE_URL):
         return 0
     else:
@@ -158,5 +160,20 @@ def get_pfile_len():
         return len(pfile_ct)/AES.block_size
 
 
-def selective_encrypt(data, index):
+def selective_encrypt(data, index): #Finished, i think
+    nonce = retrieve_nonce()
+    ENC = AES.new(key, AES.MODE_CTR, nonce=nonce, initial_value=index)#check that this works as intended
+    encrypted = ENC.encrypt(data)
+    return encrypted
+
+
+def retrieve_nonce(): #TODO, obviously
+    if not isfile(PFILE_NONCE_URL):
+        #generate a new nonce
+        pass
+    else:
+        #load nonce from file
+        pass
+
+
     pass
