@@ -17,6 +17,7 @@ import json
 #Constants
 ver_salt = '12345678'
 enc_salt = '90abcdef'
+mac_salt = 'qwertyui'
 
 VERIFICATION_HASH_URL = 'verification-hash'
 
@@ -29,7 +30,8 @@ PFILE_NONCE_URL = 'pfile-nonce'
 MAC_LENGTH = 32
 
 #lateinits
-key:bytes = None
+mac_key:bytes = None
+enc_key:bytes = None
 login_time = None
 acct_directory:list = None
 
@@ -53,9 +55,10 @@ def verify_password(p):
     return ver_key == vhash
 
 def derive_enc_key(p):
-    global key
-    key = PBKDF2(p, enc_salt, count=10000)
-    print(key)
+    global enc_key
+    global mac_key
+    enc_key = PBKDF2(p, enc_salt, count=10000)
+    mac_key = PBKDF2(p, mac_salt, count=10000)
     set_login_time()
 
 def set_login_time():
@@ -83,6 +86,9 @@ def check_good_pw(p):
 #registering an account
 def register_acct(name, url, username, password):#TODO
     global acct_directory
+    global enc_key
+    global mac_key
+
     if not acct_directory:
         load_directory()
     index = get_pfile_len()
@@ -90,8 +96,23 @@ def register_acct(name, url, username, password):#TODO
     add_pw_to_pfile(password)
     acct_directory.append(new_entry)
 
-    with open(DIRECTORY_URL, 'wb+') as outfile:
-        json.dump(acct_directory, outfile)
+    plaintext = pad(json.dumps(acct_directory).encode('utf-8'), AES.block_size)
+    iv = get_random_bytes(AES.block_size)
+    cipher = AES.new(enc_key, AES.MODE_CBC, iv)
+    ciphertext = cipher.encrypt(plaintext)
+
+    mac = HMAC.new(mac_key, digestmod=SHA256)
+    mac.update(iv)
+    mac.update(ciphertext)
+    mac = mac.digest()
+
+    enc_accounts = iv + ciphertext + mac
+    dir_file = open(DIRECTORY_URL, 'wb+')
+    dir_file.write(enc_accounts)
+    dir_file.close()
+
+    #with open(DIRECTORY_URL, 'w+') as outfile:
+     #   json.dump(enc_accounts, outfile)
     #now encrypt the file
     pass
 
@@ -127,12 +148,12 @@ def load_directory():
     ifile.close()
 
     # read the encrypted iv, ciphertext, MAC from file
-    iv_ct = ciphertext[:AES.block_size]
+    iv = ciphertext[:AES.block_size]
     mac = ciphertext[-MAC_LENGTH:]
     ciphertext = ciphertext[AES.block_size:-MAC_LENGTH]
 
     #verify the MAC (could be moved to login, but not necessary)
-    MAC = HMAC.new(key, digestmod=SHA256)
+    MAC = HMAC.new(mac_key, digestmod=SHA256)
     MAC.update(iv)
     MAC.update(ciphertext)
     comp_mac = MAC.digest()
@@ -141,7 +162,7 @@ def load_directory():
         exit()
 
     #decrypt the data
-    ENC = AES.new(key, AES.MODE_CBC, iv=iv)
+    ENC = AES.new(enc_key, AES.MODE_CBC, iv=iv)
     decrypted = ENC.decrypt(ciphertext)
     decrypted = unpad(decrypted, AES.block_size)
 
@@ -171,12 +192,12 @@ def get_pfile_len():
         pfile = open(PFILE_URL, 'rb')
         pfile_ct = pfile.read()
         pfile.close()
-        return len(pfile_ct)/AES.block_size
+        return int(len(pfile_ct)/AES.block_size)
 
 
 def selective_encrypt(data, index): #Finished, i think
     nonce = retrieve_nonce()
-    ENC = AES.new(key, AES.MODE_CTR, nonce=nonce, initial_value=index)#check that this works as intended
+    ENC = AES.new(enc_key, AES.MODE_CTR, nonce=nonce, initial_value=index)#check that this works as intended
     encrypted = ENC.encrypt(data)
     return encrypted
 
@@ -201,9 +222,9 @@ def print_accts():
 
     if not acct_directory:
         load_directory()
-    for i in range(0,len(acct_directory)-1):
+    for i in range(0,len(acct_directory)):
         print ('Service: ', acct_directory[i]['Name'])
+        print ('URL: ', acct_directory[i]['URL'])
         print ('Username: ', acct_directory[i]['Username'])
-        print ('URL: ', acct_directory[i]['Url'])
 
 pass
