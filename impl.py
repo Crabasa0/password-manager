@@ -179,12 +179,16 @@ def selective_encrypt(data, index): #Finished, i think
 
 
 def retrieve_nonce(): #TODO, obviously
+#do we want to store the nonce as plaintext?
     if not isfile(PFILE_NONCE_URL):
-        #generate a new nonce
-        pass
+   		nonce = Random.get_random_bytes(8)
+   		#create the nonce file and write to it
+        return nonce
     else:
-        #load nonce from file
-        pass
+    	nfile = open(PFILE_NONCE_URL, 'rb')
+    	nonce = nfile.read()
+    	nfile.close()
+        return nonce
 
 
 pass
