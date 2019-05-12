@@ -32,4 +32,5 @@ def run():
 def run_debug():
     impl.get_random_pw()
 
-run_debug()
+#run_debug()
+run()

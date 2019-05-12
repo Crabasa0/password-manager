@@ -53,10 +53,13 @@ def verify_password(p):
     return ver_key == vhash
 
 def derive_enc_key(p):
+    global key
     key = PBKDF2(p, enc_salt, count=10000)
+    print(key)
     set_login_time()
 
 def set_login_time():
+    global login_time
     login_time = datetime.datetime.now()
 
 #setup
@@ -66,12 +69,12 @@ def setup(p):
     ver_key = PBKDF2(p, ver_salt, count=10000)
     vhash_file = open(VERIFICATION_HASH_URL, 'wb+')
     vhash_file.write(ver_key)
-    #don't we want to close this file?
+    vhash_file.close()
 
 def check_good_pw(p):
     good_len = len(p) >= 10
-    good_uc = any(char in string.uppercase for char in p)
-    good_lc = any(char in string.lowercase for char in p)
+    good_uc = any(char in string.ascii_uppercase for char in p)
+    good_lc = any(char in string.ascii_lowercase for char in p)
     good_sc = any(char in string.punctuation for char in p)
     good_num = any(char in string.digits for char in p)
     return good_len and good_uc and good_lc and good_sc and good_num
@@ -79,6 +82,7 @@ def check_good_pw(p):
 
 #registering an account
 def register_acct(name, url, username, password):#TODO
+    global acct_directory
     if not acct_directory:
         load_directory()
     index = get_pfile_len()
@@ -110,6 +114,8 @@ def get_random_pw():
 
 #Decrypt, load directory file
 def load_directory():
+    global acct_directory
+
     if not isfile(DIRECTORY_URL):
         print('No directory file, creating empty list')
         acct_directory = []
@@ -178,25 +184,26 @@ def selective_encrypt(data, index): #Finished, i think
 def retrieve_nonce(): #TODO, obviously
 #do we want to store the nonce as plaintext?
     if not isfile(PFILE_NONCE_URL):
-   		nonce = Random.get_random_bytes(8)
+        nonce = get_random_bytes(8)
         nfile = open(PFILE_NONCE_URL, 'wb+')
         nfile.write(nonce)
         nfile.close()
         return nonce
     else:
-    	nfile = open(PFILE_NONCE_URL, 'rb')
-    	nonce = nfile.read()
-    	nfile.close()
+        nfile = open(PFILE_NONCE_URL, 'rb')
+        nonce = nfile.read()
+        nfile.close()
         return nonce
 
 
 def print_accts():
-	if not acct_directory:
+    global acct_directory
+
+    if not acct_directory:
         load_directory()
-    #do we want to alphabetize by service name?
     for i in range(0,len(acct_directory)-1):
-   		print 'Service: ', acct_directory[i]['Name']
-   		print 'Username: ', acct_directory[i]['Username']
-   		print 'URL: ', acct_directory[i]['Url']
+        print ('Service: ', acct_directory[i]['Name'])
+        print ('Username: ', acct_directory[i]['Username'])
+        print ('URL: ', acct_directory[i]['Url'])
 
 pass

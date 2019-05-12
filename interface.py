@@ -16,6 +16,7 @@ def login_menu():
 # do we want to display a message if the password fails?
 
     impl.derive_enc_key(p)
+    print(impl.key)
     main_menu()
 
     #pass
@@ -85,4 +86,4 @@ def setup_menu():
 
 
 def notify_login_expired():
-pass
+    pass
