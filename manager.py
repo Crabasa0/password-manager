@@ -30,6 +30,6 @@ def run():
     pass
 
 def run_debug():
-    interface.main_menu()
+    impl.get_random_pw()
 
-run()
+run_debug()

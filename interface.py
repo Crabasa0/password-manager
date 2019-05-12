@@ -44,7 +44,16 @@ def retrieve_info_menu():
     print('It works!')
 
 def register_menu():
-    pass
+    print('Register a new account')
+    service_name = input('Service Name:')
+    service_url = input('URL:')
+    username = input('Username:')
+    use_own_pw = input('Use own password (y) or random password (anything else)?')
+    if use_own_pw == 'y':
+        password = getpass.getpass()
+    else:
+        password = impl.get_random_pw()
+    impl.register_acct(service_name, service_url, username, password)
 
 def view_accts_menu():
     pass
@@ -73,4 +82,4 @@ def setup_menu():
 
 
 def notify_login_expired():
-    pass
+pass
