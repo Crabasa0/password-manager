@@ -33,6 +33,8 @@ key:bytes = None
 login_time = None
 acct_directory:list = None
 
+#When we logout, we are going to have to copy acct_directory to the proper file
+
 #login
 #potential security improvements:
 #   1. Move these functions into interface to reduce password copies on stack
@@ -66,6 +68,7 @@ def setup(p):
     ver_key = PBKDF2(p, ver_salt, count=10000)
     vhash_file = open(VERIFICATION_HASH_URL, 'wb+')
     vhash_file.write(ver_key)
+    #do we want to close this file?
 
 def check_good_pw(p):
     good_len = len(p) >= 10
@@ -77,11 +80,11 @@ def check_good_pw(p):
 
 
 #registering an account
-
 def register_acct(name, url, username, password):#TODO
     if not acct_directory:
         load_directory()
-    new_entry = {"Name":name, "URL":url, "Username":username}
+    index = get_pfile_len()
+    new_entry = {"Name":name, "URL":url, "Username":username, "PW_index":index}
     add_pw_to_pfile(password)
     acct_directory.append() #do we need to specify that we're appending new_entry?
     pass
@@ -97,7 +100,7 @@ def get_random_pw():
     for c in pw_char_list:
         c = '0'
 
-# DEBUGGING. BE CAREFUL. REMOVE THIS
+	#DEBUGGING. BE CAREFUL. REMOVE THIS
     print('[DEBUG] Random password was: ' + rand_pw)
     return rand_pw
 
@@ -144,8 +147,15 @@ def add_pw_to_pfile(password): #NEEDS TO BE FINISHED
     #encrypt the block(s)
     index = get_pfile_len()
     new_ct = selective_encrypt(pb_padded, index)
-    #append new_ct to the pfile
-
+    #append the encrypted block to the password file
+    if not isfile(PFILE_URL):
+    	#create the pfile
+    	#write new_ct to the pfile
+    else:
+    	pfile = open(PFILE_URL, 'wb')
+    	pfile.write(new_ct)
+    	pfile.close()
+    #do we want to increment the nonce here? Or are we just incrementing the index?
     pass
 
 #returns the length of the password file in AES blocks
@@ -157,6 +167,8 @@ def get_pfile_len():
         pfile_ct = pfile.read()
         pfile.close()
         return len(pfile_ct)/AES.block_size
+
+        #Should we have a MAC on the pfile?
 
 
 def selective_encrypt(data, index): #Finished, i think
