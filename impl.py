@@ -226,14 +226,26 @@ def print_accts():
 
 
 def search_by_service_name(name):
+    global acct_directory
+
+    if not acct_directory:
+        load_directory()
     pass
 
 
 def search_by_url(url):
+    global acct_directory
+
+    if not acct_directory:
+        load_directory()
     pass
 
 
 def search_by_username(username):
+    global acct_directory
+
+    if not acct_directory:
+        load_directory()
     pass
 
 

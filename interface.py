@@ -13,8 +13,6 @@ def login_menu():
         p = getpass.getpass() # if we ever use stdout for useful output, we should use getpass.getpass(stream=sys.stderr) so that the password doesn't get output as part of stdout
         good_login = impl.verify_password(p)
 
-# do we want to display a message if the password fails?
-
     impl.derive_enc_key(p)
     main_menu()
 
