@@ -83,7 +83,7 @@ def register_acct(name, url, username, password):#TODO
         load_directory()
     new_entry = {"Name":name, "URL":url, "Username":username}
     add_pw_to_pfile(password)
-    acct_directory.append()
+    acct_directory.append() #do we need to specify that we're appending new_entry?
     pass
 
 def get_random_pw():
@@ -97,6 +97,7 @@ def get_random_pw():
     for c in pw_char_list:
         c = '0'
 
+# DEBUGGING. BE CAREFUL. REMOVE THIS
     print('[DEBUG] Random password was: ' + rand_pw)
     return rand_pw
 
@@ -143,11 +144,12 @@ def add_pw_to_pfile(password): #NEEDS TO BE FINISHED
     #encrypt the block(s)
     index = get_pfile_len()
     new_ct = selective_encrypt(pb_padded, index)
+    #append new_ct to the pfile
 
     pass
 
 #returns the length of the password file in AES blocks
-def get_pfile_len(): #NEEDS TO BE FINISHED
+def get_pfile_len():
     if not isfile(PFILE_URL):
         return 0
     else:
