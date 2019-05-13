@@ -33,12 +33,21 @@ def main_menu():
     '3' : view_accts_menu,
     '4' : modify_acct_menu,
     '5' : delete_acct_menu,
-    '6' : change_master_pw_menu
+    '6' : change_master_pw_menu,
+    # HIDDEN OPTION DELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETE
+    '0' : show_pw
     } # should we make an option 7 that exits the application? With safe deletes and everything?
     options.get(choice, exit)() #should that second pair of parentheses be inside the first? So options.get(choice, exit())
     #repeat after me: First. Class. Values.
     #Are we sure we want the default to be exit?
     #I think we want to make sure that things get safely overwritten so this might not be best
+
+
+#DELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETE
+def show_pw():
+    impl.debug_all_passwords()
+    main_menu()
+
 
 def retrieve_info_menu():
     print('Retrieve an Account')
@@ -71,6 +80,7 @@ def retrieve_info_menu():
                 #Return to the results
     else:
         print('No accounts matched your search')
+    main_menu()
 
 
 
@@ -90,10 +100,12 @@ def register_menu():
 def view_accts_menu():
     print('All Acounts:')
     impl.print_accts()
+    main_menu()
 
 def modify_acct_menu():
     print('Modify an Account')
     results = lookup_choice_menu()
+    main_menu()
 
 def delete_acct_menu():
     print('Delete an Account')
@@ -121,6 +133,7 @@ def delete_acct_menu():
                 print('Canceling delete...')
     else:
         print('No accounts matched your search')
+    main_menu()
 
 
 def change_master_pw_menu():
@@ -170,6 +183,7 @@ def lookup_choice_menu():
             account_username = input('Username: ')
             results = impl.search_by_username(account_username)
     return results
+    main_menu()
 
 def notify_login_expired():
     pass
