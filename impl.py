@@ -65,6 +65,7 @@ def set_login_time():
 
 #setup
 def setup(p):
+    global login_time
     ver_key = PBKDF2(p, ver_salt, count=10000)
     vhash_file = open(VERIFICATION_HASH_URL, 'wb+')
     vhash_file.write(ver_key)
@@ -150,7 +151,6 @@ def load_directory():
     iv = ciphertext[:AES.block_size]
     mac = ciphertext[-MAC_LENGTH:]
     ciphertext = ciphertext[AES.block_size:-MAC_LENGTH]
-    print(ciphertext)
 
     #verify the MAC
     MAC = HMAC.new(mac_key, digestmod=SHA256)
@@ -165,7 +165,6 @@ def load_directory():
     ENC = AES.new(enc_key, AES.MODE_CBC, iv=iv)
     decrypted = ENC.decrypt(ciphertext)
     decrypted = unpad(decrypted, AES.block_size)
-    print(decrypted)
 
     #load the list
     acct_directory = json.loads(decrypted)
@@ -249,7 +248,6 @@ def print_accts():
     global acct_directory
     if not acct_directory:
         load_directory()
-    print(acct_directory)
     for i in range(0,len(acct_directory)):
         print ('Service: ', acct_directory[i]['Name'])
         print ('URL: ', acct_directory[i]['URL'])

@@ -183,7 +183,6 @@ def change_master_pw_menu():
     
 
 def setup_menu():
-    impl.proceed_if_valid_login()
     print('Choose a password. At least 10 chars, 1 UC, 1 LC, 1 num, 1 special')
     is_good_pw = False
     while not is_good_pw:
