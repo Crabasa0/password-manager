@@ -442,17 +442,6 @@ def proceed_if_valid_login():
 #        print('hello!')
 
 
-def proceed_if_valid_login():
-    if not check_login_valid():
-        print('Your login window has expired. Please restart the program to continue')
-        exit()
-
-#class TimerThread(Thread):
-#    def run(self):
-#        time.sleep(2)
-#        print('hello!')
-
-
 def debug_all_passwords():
     DEC = AES.new(enc_key, AES.MODE_CTR, nonce=retrieve_nonce(), initial_value=0)
     pfile = open(PFILE_URL, 'rb')
