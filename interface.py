@@ -10,7 +10,7 @@ def login_menu():
     print('Hello, ' + getpass.getuser())
     good_login = False
     while not good_login:
-        p = getpass.getpass() # if we ever use stdout for useful output, we should use getpass.getpass(stream=sys.stderr) so that the password doesn't get output as part of stdout
+        p = getpass.getpass()
         good_login = impl.verify_password(p)
 
     impl.derive_enc_key(p)
@@ -35,23 +35,13 @@ def main_menu():
     '4' : modify_acct_menu,
     '5' : delete_acct_menu,
     '6' : change_master_pw_menu,
-    # HIDDEN OPTION DELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETE
-    '0' : show_pw
-    } # should we make an option 7 that exits the application? With safe deletes and everything?
+    }
     good_choice = False
     while not good_choice:
         choice = input()
         if choice in ['1','2','3','4','5','6','7']:
             good_choice=True
             options.get(choice, impl.secure_exit)()
-
-
-
-
-#DELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETE
-def show_pw():
-    impl.debug_all_passwords()
-    main_menu()
 
 
 def retrieve_info_menu():
@@ -70,9 +60,9 @@ def retrieve_info_menu():
         while not right_choice:
             account_to_retrieve = input('Type the number of the account whose password you wish to copy: ')
             #e.g. 0
+            #Currently doesn't deal with cases where the user doesn't type a number, which results in a crash
             confirm_retrieval = input('Are you sure that you want to retrieve the password of account number ' + account_to_retrieve + '? (y or n) ')
             if confirm_retrieval =='y':
-                #Currently doesn't deal with cases where the user doesn't type a number
                 if int(account_to_retrieve) < len(results):
                     right_choice = True
                     index_to_retrieve = results[int(account_to_retrieve)]
@@ -89,7 +79,6 @@ def retrieve_info_menu():
     main_menu()
 
 
-
 def register_menu():
     impl.proceed_if_valid_login()
     print('Register a new account')
@@ -104,27 +93,30 @@ def register_menu():
     impl.register_acct(service_name, service_url, username, password)
     main_menu()
 
+    
 def view_accts_menu():
     impl.proceed_if_valid_login()
     print('All Acounts:')
     impl.print_accts()
-
     main_menu()
 
+    
 def modify_acct_menu():
     impl.proceed_if_valid_login()
     print('Modify an Account')
     results = lookup_choice_menu()
+    
     print('Results: ')
     for i in range(0, len(results)):
         print(i, ': ', impl.acct_directory[results[i]])
+        
     if len(results) > 0:
         right_choice = False
         while not right_choice:
             account_to_modify = input('Type the number of the account you wish to modify: ')
+            #Currently doesn't deal with cases where the user doesn't type a number
             confirm_modify = input('Are you sure that you want to modify account number ' + account_to_modify + '? (y or n) ')
             if confirm_modify =='y':
-                #Currently doesn't deal with cases where the user doesn't type a number
                 if int(account_to_modify) < len(results):
                     right_choice = True
                     index_to_modify = results[int(account_to_modify)]
@@ -137,10 +129,9 @@ def modify_acct_menu():
                 print('Canceling modification...')
     else:
         print('No accounts matched your search')
-
-
     main_menu()
 
+    
 def delete_acct_menu():
     impl.proceed_if_valid_login()
     print('Delete an Account')
@@ -154,9 +145,9 @@ def delete_acct_menu():
         right_choice = False
         while not right_choice:
             account_to_delete = input('Type the number of the account you wish to delete: ')
+            #Currently doesn't deal with cases where the user doesn't type a number
             confirm_delete = input('Are you sure that you want to delete account number ' + account_to_delete + '? (y or n) ')
             if confirm_delete =='y':
-                #Currently doesn't deal with cases where the user doesn't type a number
                 if int(account_to_delete) < len(results):
                     right_choice = True
                     index_to_delete = results[int(account_to_delete)]
@@ -189,7 +180,7 @@ def change_master_pw_menu():
     impl.change_master_pw(p)
     del(p)
     main_menu()
-    pass
+    
 
 def setup_menu():
     impl.proceed_if_valid_login()
@@ -205,6 +196,8 @@ def setup_menu():
     impl.set_login_time()
     main_menu()
 
+
+#returns a list of account indices from a search based on the chosen parameter
 def lookup_choice_menu():
     impl.proceed_if_valid_login()
     results = []
@@ -225,7 +218,3 @@ def lookup_choice_menu():
             results = impl.search_by_username(account_username)
     return results
     main_menu()
-
-def notify_login_expired():
-    print('Your login window has expired. Please restart the program to continue')
-    pass
