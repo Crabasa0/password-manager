@@ -24,6 +24,7 @@ VERIFICATION_HASH_URL = 'verification-hash'
 DIRECTORY_URL = 'directory'
 PFILE_URL = 'pfile'
 PFILE_NONCE_URL = 'pfile-nonce'
+PFILE_MAC_URL = 'pfile-mac'
 
 RAND_PW_SIZE = 14
 MAC_LENGTH = 32
@@ -76,7 +77,7 @@ def check_good_pw(p):
     good_len = len(p) >= 10
     good_uc = any(char in string.ascii_uppercase for char in p)
     good_lc = any(char in string.ascii_lowercase for char in p)
-    good_sc = any(char in string.punctuation for char in p)
+    good_sc = any(char in string.punctuation + ' ' for char in p)
     good_num = any(char in string.digits for char in p)
     return good_len and good_uc and good_lc and good_sc and good_num
 
@@ -304,6 +305,84 @@ def copy_pw(pw_index):
 	#decrypt the selected password
 	#pyperclip.copy(pw_to_copy)
 	pass
+
+def change_master_pw(new_pw):
+    global enc_key
+    global mac_key
+    global ver_key
+
+    new_enc_key = PBKDF2(new_pw, enc_salt, count=10000)
+    new_mac_key = PBKDF2(new_pw, mac_salt, count=10000)
+    new_ver_key = PBKDF2(new_pw, ver_salt, count=10000)
+    new_pfile_nonce = get_random_bytes(8)
+    new_directory_iv = get_random_bytes(AES.block_size)
+
+    #early exit: empty directory (no passwords)
+    if acct_directory == []:
+        vh_file = open(VERIFICATION_HASH_URL, 'wb')
+        vh_file.write(new_ver_key)
+        vh_file.close()
+
+        enc_key = new_enc_key
+        mac_key = new_mac_key
+        ver_key = new_ver_key
+        return
+
+    #re-encrypt the files with new info
+    #DIRECTORY
+    ENC = AES.new(new_enc_key, AES.MODE_CBC, iv=new_directory_iv)
+    json_string = json.dumps(acct_directory)
+    padded = pad(bytes(json_string, 'utf-8'), AES.block_size)
+    encrypted = ENC.encrypt(padded)
+
+    MAC = HMAC.new(new_mac_key, digestmod=SHA256)         # create a HMAC object, pass the right key and specify SHA256 as the hash fn
+    MAC.update(new_directory_iv)
+    MAC.update(encrypted)
+    comp_mac = MAC.digest()    # compute the final HMAC value
+
+    dir_file = open(DIRECTORY_URL, 'wb')
+    dir_file.write(new_directory_iv)
+    dir_file.write(encrypted)
+    dir_file.write(comp_mac)
+    dir_file.close()
+
+    #PFILE (securty optimization: do one at a time rather than all at once)
+    DEC = AES.new(enc_key, AES.MODE_CTR, nonce=retrieve_nonce(), initial_value=0)
+    pfile = open(PFILE_URL, 'rb')
+    pfile_ct = pfile.read()
+    pfile.close()
+    decrypted_pfile = DEC.decrypt(pfile_ct)
+    ENC = AES.new(new_enc_key, AES.MODE_CTR, nonce=new_pfile_nonce, initial_value=0)
+    reencrypted_pfile = ENC.encrypt(decrypted_pfile)
+    pfile = open(PFILE_URL, 'wb')
+    pfile.write(reencrypted_pfile)
+    pfile.close()
+
+    pfile_nonce_file = open(PFILE_NONCE_URL, 'wb')
+    pfile_nonce_file.write(new_pfile_nonce)
+    pfile_nonce_file.close()
+
+    #should probably be putting a MAC on the pfile
+    pfile_mac_file = open(PFILE_MAC_URL, 'wb')
+    PF_MAC = HMAC.new(new_mac_key, digestmod=SHA256)
+    PF_MAC.update(new_pfile_nonce)
+    PF_MAC.update(reencrypted_pfile)
+    pfile_mac_file.write(PF_MAC.digest())
+    pfile_mac_file.close()
+
+    #VERIFICATION HASH
+    vh_file = open(VERIFICATION_HASH_URL, 'wb')
+    vh_file.write(new_ver_key)
+    vh_file.close()
+
+
+
+    #update the keys in use
+
+    enc_key = new_enc_key
+    mac_key = new_mac_key
+    ver_key = new_ver_key
+
 
 
 pass

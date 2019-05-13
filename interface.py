@@ -80,6 +80,7 @@ def register_menu():
     else:
         password = impl.get_random_pw()
     impl.register_acct(service_name, service_url, username, password)
+    main_menu()
 
 
 def view_accts_menu():
@@ -121,6 +122,19 @@ def delete_acct_menu():
 
 
 def change_master_pw_menu():
+    good_current_pw = False
+    while not good_current_pw:
+        current_p = getpass.getpass(prompt='Current Password:')
+        good_current_pw = impl.verify_password(current_p)
+    print('Choose a new password. At least 10 chars, 1 UC, 1 LC, 1 num, 1 special')
+    is_good_pw = False
+    while not is_good_pw:
+        p = getpass.getpass()
+        if p == getpass.getpass(prompt='Verify Password:') and impl.check_good_pw(p):
+            is_good_pw = True
+        else:
+            print('Make sure your passwords match, and satisfy the requirements')
+    impl.change_master_pw(p)
     pass
 
 def setup_menu():
