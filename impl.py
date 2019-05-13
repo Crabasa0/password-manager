@@ -26,6 +26,7 @@ RAND_PW_SIZE = 14
 DIRECTORY_URL = 'directory'
 PFILE_URL = 'pfile'
 PFILE_NONCE_URL = 'pfile-nonce'
+PFILE_MAC_URL = 'pfile-mac'
 
 MAC_LENGTH = 32
 
@@ -259,6 +260,17 @@ def change_master_pw(new_pw):
     new_pfile_nonce = get_random_bytes(8)
     new_directory_iv = get_random_bytes(AES.block_size)
 
+    #early exit: empty directory (no passwords)
+    if acct_directory = []:
+        vh_file = open(VERIFICATION_HASH_URL, 'wb')
+        vh_file.write(new_ver_key)
+        vh_file.close()
+
+        enc_key = new_enc_key
+        mac_key = new_mac_key
+        ver_key = new_ver_key
+        return
+
     #re-encrypt the files with new info
     #DIRECTORY
     ENC = AES.new(new_enc_key, AES.MODE_CBC, iv=new_directory_iv)
@@ -293,10 +305,20 @@ def change_master_pw(new_pw):
     pfile_nonce_file.write(new_pfile_nonce)
     pfile_nonce_file.close()
 
+    #should probably be putting a MAC on the pfile
+    pfile_mac_file = open(PFILE_MAC_URL, 'wb')
+    PF_MAC = HMAC.new(new_mac_key, digestmod=SHA256)
+    PF_MAC.update(new_pfile_nonce)
+    PF_MAC.update(reencrypted_pfile)
+    pfile_mac_file.write(PF_MAC.digest())
+    pfile_mac_file.close()
+
     #VERIFICATION HASH
     vh_file = open(VERIFICATION_HASH_URL, 'wb')
     vh_file.write(new_ver_key)
     vh_file.close()
+
+
 
     #update the keys in use
 
