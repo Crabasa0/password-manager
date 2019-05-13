@@ -40,16 +40,9 @@ login_time = None
 acct_directory:list = None
 
 #login
-#potential security improvements:
-#   1. Move these functions into interface to reduce password copies on stack
-#   alternatively, call functions that write over stack afterwards
-#   (Scratch that, CPython only allocates on heap. Wonderful.)
-#   2. Generate salts when master password is created/changed
-#   3. Check login validity on a separate thread that waits
-
 def check_login_valid():
     td = datetime.datetime.now() - login_time
-    sess_len = td.seconds #is this checking the seconds timestamp or the length of the session in seconds? It seems like the former. If so, how is this helpful?
+    sess_len = td.seconds
     return sess_len > 0 and sess_len < 300
 
 def verify_password(p):
@@ -68,13 +61,9 @@ def derive_enc_key(p):
 def set_login_time():
     global login_time
     login_time = datetime.datetime.now()
-    #Beta: start the thread
-    #timer = TimerThread()
-    #timer.start()
+
 
 #setup
-#May be an opportune time to create data files, otherwise we can
-#(probably) do it lazily
 def setup(p):
     ver_key = PBKDF2(p, ver_salt, count=10000)
     vhash_file = open(VERIFICATION_HASH_URL, 'wb+')
@@ -157,13 +146,13 @@ def load_directory():
     ciphertext = ifile.read()
     ifile.close()
 
-    # read the encrypted iv, ciphertext, MAC from file
+    # read the iv, ciphertext, MAC from file
     iv = ciphertext[:AES.block_size]
     mac = ciphertext[-MAC_LENGTH:]
     ciphertext = ciphertext[AES.block_size:-MAC_LENGTH]
     print(ciphertext)
 
-    #verify the MAC (could be moved to login, but not necessary)
+    #verify the MAC
     MAC = HMAC.new(mac_key, digestmod=SHA256)
     MAC.update(iv)
     MAC.update(ciphertext)
@@ -181,7 +170,7 @@ def load_directory():
     #load the list
     acct_directory = json.loads(decrypted)
 
-def add_pw_to_pfile(password): #SHOULD BE CHECKED
+def add_pw_to_pfile(password):
     #convert password string to bytes for encryption
     pb = bytes(password, 'utf-8')
     #pad to create password block(s)
@@ -193,9 +182,9 @@ def add_pw_to_pfile(password): #SHOULD BE CHECKED
     pfile = open(PFILE_URL, 'ab+')
     pfile.write(new_ct)
     pfile.close()
-    pass
-    #do we want to have a MAC here?
+    #do we want to have a MAC here? We update on logout but it might be good here
 
+    
 #returns the length of the password file in AES blocks
 def get_pfile_len():
     if not isfile(PFILE_URL):
@@ -207,9 +196,9 @@ def get_pfile_len():
         return int(len(pfile_ct)/AES.block_size)
 
 
-def selective_encrypt(data, index): #Finished, i think
+def selective_encrypt(data, index):
     nonce = retrieve_nonce()
-    ENC = AES.new(enc_key, AES.MODE_CTR, nonce=nonce, initial_value=index)#check that this works as intended
+    ENC = AES.new(enc_key, AES.MODE_CTR, nonce=nonce, initial_value=index)
     encrypted = ENC.encrypt(data)
     return encrypted
 
@@ -243,7 +232,6 @@ def selective_decrypt(index): #spaghetti code warning
 
 
 def retrieve_nonce():
-#do we want to store the nonce as plaintext?
     if not isfile(PFILE_NONCE_URL):
         nonce = get_random_bytes(8)
         nfile = open(PFILE_NONCE_URL, 'wb+')
@@ -259,7 +247,6 @@ def retrieve_nonce():
 
 def print_accts():
     global acct_directory
-
     if not acct_directory:
         load_directory()
     print(acct_directory)
@@ -272,41 +259,38 @@ def print_accts():
 
 def search_by_service_name(name):
     global acct_directory
-    accts_that_match = []
-
     if not acct_directory:
         load_directory()
-
+    #a list of indices into the account directory of the accounts 
+    #that match the parameters
+    accts_that_match = []
     for i in range(0, len(acct_directory)):
         if acct_directory[i]['Name'] == name:
             accts_that_match.append(i)
-
     return accts_that_match
 
 def search_by_url(url):
     global acct_directory
-    accts_that_match = []
-
     if not acct_directory:
         load_directory()
-
+    #a list of indices into the account directory of the accounts 
+    #that match the parameters
+    accts_that_match = []
     for i in range(0, len(acct_directory)):
         if acct_directory[i]['URL'] == url:
             accts_that_match.append(i)
-
     return accts_that_match
 
 def search_by_username(username):
     global acct_directory
-    accts_that_match = []
-
     if not acct_directory:
         load_directory()
-
+    #a list of indices into the account directory of the accounts 
+    #that match the parameters
+    accts_that_match = []
     for i in range(0, len(acct_directory)):
         if acct_directory[i]['Username'] == username:
             accts_that_match.append(i)
-
     return accts_that_match
 
 
@@ -340,7 +324,7 @@ def change_master_pw(new_pw):
     padded = pad(bytes(json_string, 'utf-8'), AES.block_size)
     encrypted = ENC.encrypt(padded)
 
-    MAC = HMAC.new(new_mac_key, digestmod=SHA256)         # create a HMAC object, pass the right key and specify SHA256 as the hash fn
+    MAC = HMAC.new(new_mac_key, digestmod=SHA256)
     MAC.update(new_directory_iv)
     MAC.update(encrypted)
     comp_mac = MAC.digest()    # compute the final HMAC value
@@ -367,7 +351,7 @@ def change_master_pw(new_pw):
     pfile_nonce_file.write(new_pfile_nonce)
     pfile_nonce_file.close()
 
-    #should probably be putting a MAC on the pfile
+    #put a MAC on the pfile
     pfile_mac_file = open(PFILE_MAC_URL, 'wb')
     PF_MAC = HMAC.new(new_mac_key, digestmod=SHA256)
     PF_MAC.update(new_pfile_nonce)
@@ -385,6 +369,7 @@ def change_master_pw(new_pw):
     mac_key = new_mac_key
     ver_key = new_ver_key
 
+    
 #delete an account
 def delete_acct(acct_index):
     global acct_directory
@@ -398,18 +383,15 @@ def delete_acct(acct_index):
     else:
         pfile_len = get_pfile_len()
         pw_block_length = pfile_len - pw_idx
-
     #remove the account from the account directory and rewrite the file
     del acct_directory[acct_index]
     write_acct_info_file()
-
-    print('pw index: ' + str(pw_idx))
-    print('pw_block_length: ' + str(pw_block_length))
+    #overwrite the password in the password file
     delete_password(pw_idx, pw_block_length)
 
 
 #delete a password
-def delete_password(pw_index, pw_length): #TODO
+def delete_password(pw_index, pw_length):
     pw_start = pw_index * AES.block_size
     pw_end = (pw_index + pw_length) * AES.block_size
     pfile = open(PFILE_URL, 'rb')
@@ -419,13 +401,11 @@ def delete_password(pw_index, pw_length): #TODO
     first_chunk = pfile_ct[:pw_start]
     second_chunk = pfile_ct[pw_end:]
     rand_bytes = get_random_bytes(pw_length * AES.block_size)
-    print(rand_bytes)
 
     new_pfile_ct = first_chunk + rand_bytes + second_chunk
     pfile = open(PFILE_URL, 'wb')
     pfile.write(new_pfile_ct)
     pfile.close()
-
 
 
 def copy_pw(acct_index):
@@ -436,24 +416,12 @@ def copy_pw(acct_index):
     pw_to_copy = pw_bytes.decode('utf-8')
     pyperclip.copy(pw_to_copy)
 
+    
 def proceed_if_valid_login():
     if not check_login_valid():
         print('Your login window has expired. Please restart the program to continue')
         exit()
 
-#class TimerThread(Thread):
-#    def run(self):
-#        time.sleep(2)
-#        print('hello!')
-
-
-def debug_all_passwords():
-    DEC = AES.new(enc_key, AES.MODE_CTR, nonce=retrieve_nonce(), initial_value=0)
-    pfile = open(PFILE_URL, 'rb')
-    pfile_ct = pfile.read()
-    pfile.close()
-    decrypted_pfile = DEC.decrypt(pfile_ct)
-    print(decrypted_pfile)
 
 def modify_acct(index):
     service_name = input('Service Name: ')
@@ -467,6 +435,7 @@ def modify_acct(index):
     register_acct(service_name, service_url, username, password)
     delete_acct(index)
 
+    
 def secure_exit():
     global mac_key
     global enc_key
@@ -508,5 +477,3 @@ def check_pfile_mac():
     if not comp_mac == pfile_saved_mac:
         print('MAC verification failed')
         exit()
-
-pass
