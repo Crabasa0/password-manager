@@ -20,13 +20,11 @@ enc_salt = '90abcdef'
 mac_salt = 'qwertyui'
 
 VERIFICATION_HASH_URL = 'verification-hash'
-
-RAND_PW_SIZE = 14
-
 DIRECTORY_URL = 'directory'
 PFILE_URL = 'pfile'
 PFILE_NONCE_URL = 'pfile-nonce'
 
+RAND_PW_SIZE = 14
 MAC_LENGTH = 32
 
 #lateinits
@@ -42,10 +40,9 @@ acct_directory:list = None
 #   (Scratch that, CPython only allocates on heap. Wonderful.)
 #   2. Generate salts when master password is created/changed
 #   3. Check login validity on a separate thread that waits
-
 def check_login_valid():
     td = datetime.datetime.now()
-    sess_len = td.seconds #is this checking the seconds timestamp or the length of the session in seconds? It seems like the former. If so, how is this helpful?
+    sess_len = td.seconds
     return sess_len > 0 and sess_len < 300
 
 def verify_password(p):
@@ -97,6 +94,8 @@ def register_acct(name, url, username, password):
 	write_acct_info_file()
 
 
+#encrypt the accounts in the directory and write the result to 
+#the directory file
 def write_acct_info_file():
     global acct_directory
     global enc_key
@@ -129,10 +128,6 @@ def get_random_pw():
     for c in pw_char_list:
         c = '0'
 
-	#DEBUGGING. BE CAREFUL. REMOVE THIS
-    print('[DEBUG] Random password was: ' + rand_pw)
-    return rand_pw
-
 
 #Decrypt, load directory file
 def load_directory():
@@ -148,7 +143,7 @@ def load_directory():
     ciphertext = ifile.read()
     ifile.close()
 
-    # read the encrypted iv, ciphertext, MAC from file
+    # read the iv, ciphertext, MAC from file
     iv = ciphertext[:AES.block_size]
     mac = ciphertext[-MAC_LENGTH:]
     ciphertext = ciphertext[AES.block_size:-MAC_LENGTH]
@@ -170,6 +165,7 @@ def load_directory():
     #load the list
     acct_directory = json.loads(decrypted)
 
+
 def add_pw_to_pfile(password): #SHOULD BE CHECKED
     #convert password string to bytes for encryption
     pb = bytes(password, 'utf-8')
@@ -185,6 +181,7 @@ def add_pw_to_pfile(password): #SHOULD BE CHECKED
     pass
     #do we want to have a MAC here?
 
+
 #returns the length of the password file in AES blocks
 def get_pfile_len():
     if not isfile(PFILE_URL):
@@ -196,6 +193,7 @@ def get_pfile_len():
         return int(len(pfile_ct)/AES.block_size)
 
 
+#encrypt one password
 def selective_encrypt(data, index): #Finished, i think
     nonce = retrieve_nonce()
     ENC = AES.new(enc_key, AES.MODE_CTR, nonce=nonce, initial_value=index)#check that this works as intended
@@ -218,6 +216,7 @@ def retrieve_nonce():
         return nonce
 
 
+#print all accounts the user has saved
 def print_accts():
     global acct_directory
 
@@ -230,6 +229,7 @@ def print_accts():
         print('')
 
 
+#search accounts by the name of the service
 def search_by_service_name(name):
     global acct_directory
     accts_that_match = []
@@ -244,6 +244,7 @@ def search_by_service_name(name):
     return accts_that_match
 
 
+#search accounts by the service url
 def search_by_url(url):
     global acct_directory
     accts_that_match = []
@@ -258,6 +259,7 @@ def search_by_url(url):
     return accts_that_match
 
 
+#search accounts by the associated username
 def search_by_username(username):
     global acct_directory
     accts_that_match = []
@@ -272,16 +274,29 @@ def search_by_username(username):
     return accts_that_match
 
 
+#delete an account
 def delete_acct(acct_index):
 	global acct_directory
 	if not acct_directory:
 		load_directory()
 	
-	pw_idx = int(acct_directory[acct_index][PW_index])
+	#get the password index and the length of the password in blocks
+	pw_idx = int(acct_directory[acct_index]['PW_index'])
+	if acct_index+1 < len(acct_directory):
+		pw_block_length = int(acct_directory[acct_index+1]['PW_index']) - pw_idx
+	else:
+		pw_block_length = get_pfile_len - pw_idx
+
+	#remove the account from the account directory and rewrite the file
 	del acct_directory[acct_index]
 	write_acct_info_file()
-    #Also delete the password from the password file
-    #Then reencrypt everything
+
+	delete_password(pw_idx, pw_block_length)
+
+
+#delete a password
+def delete_password(pw_index, pw_length): #TODO
+	pass
 
 
 pass
