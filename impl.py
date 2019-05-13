@@ -22,7 +22,6 @@ mac_salt = 'qwertyui'
 
 VERIFICATION_HASH_URL = 'verification-hash'
 
-
 DIRECTORY_URL = 'directory'
 PFILE_URL = 'pfile'
 PFILE_NONCE_URL = 'pfile-nonce'
@@ -122,8 +121,6 @@ def write_acct_info_file():
     dir_file.close()
 
 
-
-
 def get_random_pw():
     char_source = string.ascii_letters + ' ' + string.digits + string.punctuation
     pw_char_list = ['0']*RAND_PW_SIZE   #init at the correct size to prevent copies
@@ -134,7 +131,6 @@ def get_random_pw():
     #memory 'safety'
     for c in pw_char_list:
         c = '0'
-
 
     return rand_pw
 
@@ -276,7 +272,6 @@ def search_by_service_name(name):
 
     return accts_that_match
 
-
 def search_by_url(url):
     global acct_directory
     accts_that_match = []
@@ -290,7 +285,6 @@ def search_by_url(url):
 
     return accts_that_match
 
-
 def search_by_username(username):
     global acct_directory
     accts_that_match = []
@@ -303,6 +297,7 @@ def search_by_username(username):
     		accts_that_match.append(i)
 
     return accts_that_match
+
 
 def change_master_pw(new_pw):
     global enc_key
@@ -373,10 +368,7 @@ def change_master_pw(new_pw):
     vh_file.write(new_ver_key)
     vh_file.close()
 
-
-
     #update the keys in use
-
     enc_key = new_enc_key
     mac_key = new_mac_key
     ver_key = new_ver_key
@@ -387,7 +379,7 @@ def delete_acct(acct_index):
 	if not acct_directory:
 		load_directory()
 
-	#get the password index and the length of the password in blocks
+	#get the password index and the length of the stored password in blocks
 	pw_idx = int(acct_directory[acct_index]['PW_index'])
 	if acct_index+1 < len(acct_directory):
 		pw_block_length = int(acct_directory[acct_index+1]['PW_index']) - pw_idx
