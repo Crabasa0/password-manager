@@ -442,7 +442,7 @@ def proceed_if_valid_login():
 #        time.sleep(2)
 #        print('hello!')
 
-
+#DELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETE
 def debug_all_passwords():
     DEC = AES.new(enc_key, AES.MODE_CTR, nonce=retrieve_nonce(), initial_value=0)
     pfile = open(PFILE_URL, 'rb')
@@ -450,6 +450,7 @@ def debug_all_passwords():
     pfile.close()
     decrypted_pfile = DEC.decrypt(pfile_ct)
     print(decrypted_pfile)
+#DELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETE
 
 def modify_acct(index):
     service_name = input('Service Name: ')
