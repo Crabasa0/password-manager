@@ -8,9 +8,11 @@ from Crypto.Hash import HMAC, SHA256
 from Crypto.Util.Padding import pad, unpad
 from Crypto.Random import get_random_bytes
 
+from threading import Thread
 import secrets
 from os.path import isfile
 import datetime
+import time
 import string
 import json
 import pyperclip
@@ -45,7 +47,7 @@ acct_directory:list = None
 #   3. Check login validity on a separate thread that waits
 
 def check_login_valid():
-    td = datetime.datetime.now()
+    td = datetime.datetime.now() - login_time
     sess_len = td.seconds #is this checking the seconds timestamp or the length of the session in seconds? It seems like the former. If so, how is this helpful?
     return sess_len > 0 and sess_len < 300
 
@@ -65,6 +67,9 @@ def derive_enc_key(p):
 def set_login_time():
     global login_time
     login_time = datetime.datetime.now()
+    #Beta: start the thread
+    #timer = TimerThread()
+    #timer.start()
 
 #setup
 #May be an opportune time to create data files, otherwise we can
@@ -74,6 +79,8 @@ def setup(p):
     vhash_file = open(VERIFICATION_HASH_URL, 'wb+')
     vhash_file.write(ver_key)
     vhash_file.close()
+    derive_enc_key(p)
+    set_login_time()
 
 def check_good_pw(p):
     good_len = len(p) >= 10
@@ -405,7 +412,16 @@ def copy_pw(acct_index):
     pw_bytes = selective_decrypt(pw_index)
     pw_to_copy = pw_bytes.decode('utf-8')
     pyperclip.copy(pw_to_copy)
-    
+
+def proceed_if_valid_login():
+    if not check_login_valid():
+        print('Your login window has expired. Please restart the program to continue')
+        exit()
+
+#class TimerThread(Thread):
+#    def run(self):
+#        time.sleep(2)
+#        print('hello!')
 
 
 
