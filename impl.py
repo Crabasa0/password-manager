@@ -16,6 +16,7 @@ import time
 import string
 import json
 import pyperclip
+import getpass
 
 #Constants
 ver_salt = '12345678'
@@ -450,5 +451,16 @@ def debug_all_passwords():
     decrypted_pfile = DEC.decrypt(pfile_ct)
     print(decrypted_pfile)
 
+def modify_acct(index):
+    service_name = input('Service Name: ')
+    service_url = input('URL: ')
+    username = input('Username: ')
+    use_own_pw = input('Use own password (y) or random password (anything else)?')
+    if use_own_pw == 'y':
+        password = getpass.getpass()
+    else:
+        password = get_random_pw()
+    register_acct(service_name, service_url, username, password)
+    delete_acct(index)
 
 pass
