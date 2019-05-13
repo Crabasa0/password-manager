@@ -430,7 +430,16 @@ def copy_pw(acct_index):
     pw_bytes = selective_decrypt(pw_index)
     pw_to_copy = pw_bytes.decode('utf-8')
     pyperclip.copy(pw_to_copy)
-    
+
+def proceed_if_valid_login():
+    if not check_login_valid():
+        print('Your login window has expired. Please restart the program to continue')
+        exit()
+
+#class TimerThread(Thread):
+#    def run(self):
+#        time.sleep(2)
+#        print('hello!')
 
 
 def proceed_if_valid_login():

@@ -50,6 +50,7 @@ def show_pw():
 
 
 def retrieve_info_menu():
+    impl.proceed_if_valid_login()
     print('Retrieve an Account')
     results = lookup_choice_menu()
     #this is a list of account indices, i.e. [3,5,8]
@@ -85,6 +86,7 @@ def retrieve_info_menu():
 
 
 def register_menu():
+    impl.proceed_if_valid_login()
     print('Register a new account')
     service_name = input('Service Name: ')
     service_url = input('URL: ')
@@ -98,16 +100,20 @@ def register_menu():
     main_menu()
 
 def view_accts_menu():
+    impl.proceed_if_valid_login()
     print('All Acounts:')
     impl.print_accts()
+    
     main_menu()
 
 def modify_acct_menu():
+    impl.proceed_if_valid_login()
     print('Modify an Account')
     results = lookup_choice_menu()
     main_menu()
 
 def delete_acct_menu():
+    impl.proceed_if_valid_login()
     print('Delete an Account')
     results = lookup_choice_menu()
 
@@ -126,6 +132,7 @@ def delete_acct_menu():
                     right_choice = True
                     index_to_delete = results[int(account_to_delete)]
                     impl.delete_acct(index_to_delete)
+                    print('Account deleted')
                 else:
                     print('That index is not valid. Please enter a valid index')
             elif confirm_delete == 'n':
@@ -134,9 +141,10 @@ def delete_acct_menu():
     else:
         print('No accounts matched your search')
     main_menu()
-
+    
 
 def change_master_pw_menu():
+    impl.proceed_if_valid_login()
     good_current_pw = False
     while not good_current_pw:
         current_p = getpass.getpass(prompt='Current Password:')
@@ -150,9 +158,11 @@ def change_master_pw_menu():
         else:
             print('Make sure your passwords match, and satisfy the requirements')
     impl.change_master_pw(p)
+    main_menu()
     pass
 
 def setup_menu():
+    impl.proceed_if_valid_login()
     print('Choose a password. At least 10 chars, 1 UC, 1 LC, 1 num, 1 special')
     is_good_pw = False
     while not is_good_pw:
@@ -166,6 +176,7 @@ def setup_menu():
     main_menu()
 
 def lookup_choice_menu():
+    impl.proceed_if_valid_login()
     results = []
     is_valid_choice = False
     while not is_valid_choice:
@@ -186,4 +197,5 @@ def lookup_choice_menu():
     main_menu()
 
 def notify_login_expired():
+    print('Your login window has expired. Please restart the program to continue')
     pass
