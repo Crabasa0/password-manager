@@ -13,6 +13,7 @@ from os.path import isfile
 import datetime
 import string
 import json
+#import pyperclip
 
 #Constants
 ver_salt = '12345678'
@@ -296,6 +297,12 @@ def delete_acct(acct_index):
 
 #delete a password
 def delete_password(pw_index, pw_length): #TODO
+	pass
+
+
+def copy_pw(pw_index):
+	#decrypt the selected password
+	#pyperclip.copy(pw_to_copy)
 	pass
 
 
