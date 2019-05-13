@@ -161,6 +161,7 @@ def load_directory():
     iv = ciphertext[:AES.block_size]
     mac = ciphertext[-MAC_LENGTH:]
     ciphertext = ciphertext[AES.block_size:-MAC_LENGTH]
+    print(ciphertext)
 
     #verify the MAC (could be moved to login, but not necessary)
     MAC = HMAC.new(mac_key, digestmod=SHA256)
@@ -175,6 +176,7 @@ def load_directory():
     ENC = AES.new(enc_key, AES.MODE_CBC, iv=iv)
     decrypted = ENC.decrypt(ciphertext)
     decrypted = unpad(decrypted, AES.block_size)
+    print(decrypted)
 
     #load the list
     acct_directory = json.loads(decrypted)
@@ -260,6 +262,7 @@ def print_accts():
 
     if not acct_directory:
         load_directory()
+    print(acct_directory)
     for i in range(0,len(acct_directory)):
         print ('Service: ', acct_directory[i]['Name'])
         print ('URL: ', acct_directory[i]['URL'])
@@ -317,6 +320,7 @@ def change_master_pw(new_pw):
     new_ver_key = PBKDF2(new_pw, ver_salt, count=10000)
     new_pfile_nonce = get_random_bytes(8)
     new_directory_iv = get_random_bytes(AES.block_size)
+    del(new_pw)
 
     #early exit: empty directory (no passwords)
     if acct_directory == []:
@@ -442,7 +446,7 @@ def proceed_if_valid_login():
 #        time.sleep(2)
 #        print('hello!')
 
-#DELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETE
+
 def debug_all_passwords():
     DEC = AES.new(enc_key, AES.MODE_CTR, nonce=retrieve_nonce(), initial_value=0)
     pfile = open(PFILE_URL, 'rb')
@@ -450,7 +454,6 @@ def debug_all_passwords():
     pfile.close()
     decrypted_pfile = DEC.decrypt(pfile_ct)
     print(decrypted_pfile)
-#DELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETEDELETE
 
 def modify_acct(index):
     service_name = input('Service Name: ')
@@ -463,5 +466,47 @@ def modify_acct(index):
         password = get_random_pw()
     register_acct(service_name, service_url, username, password)
     delete_acct(index)
+
+def secure_exit():
+    global mac_key
+    global enc_key
+    #put a MAC on the pfile
+    pfile = open(PFILE_URL, 'rb')
+    pfile_ct = pfile.read()
+    pfile.close()
+    nonce_file = open(PFILE_NONCE_URL, 'rb')
+    nonce = nonce_file.read()
+    nonce_file.close()
+
+    pfile_mac_file = open(PFILE_MAC_URL, 'wb')
+    PF_MAC = HMAC.new(mac_key, digestmod=SHA256)
+    PF_MAC.update(nonce)
+    PF_MAC.update(pfile_ct)
+    pfile_mac_file.write(PF_MAC.digest())
+    pfile_mac_file.close()
+
+    #for what it's worth, del these two
+    del(mac_key)
+    del(enc_key)
+
+def check_pfile_mac():
+    pfile = open(PFILE_URL, 'rb')
+    pfile_ct = pfile.read()
+    pfile.close()
+    nonce_file = open(PFILE_NONCE_URL, 'rb')
+    nonce = nonce_file.read()
+    nonce_file.close()
+
+    pfile_mac_file = open(PFILE_MAC_URL, 'rb')
+    PF_MAC = HMAC.new(mac_key, digestmod=SHA256)
+    PF_MAC.update(nonce)
+    PF_MAC.update(pfile_ct)
+    comp_mac = PF_MAC.digest()
+
+    pfile_saved_mac = pfile_mac_file.read()
+    pfile_mac_file.close()
+    if not comp_mac == pfile_saved_mac:
+        print('MAC verification failed')
+        exit()
 
 pass
