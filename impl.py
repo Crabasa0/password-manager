@@ -398,6 +398,8 @@ def delete_acct(acct_index):
     del acct_directory[acct_index]
     write_acct_info_file()
 
+    print('pw index: ' + str(pw_idx))
+    print('pw_block_length: ' + str(pw_block_length))
     delete_password(pw_idx, pw_block_length)
 
 
@@ -405,15 +407,18 @@ def delete_acct(acct_index):
 def delete_password(pw_index, pw_length): #TODO
     pw_start = pw_index * AES.block_size
     pw_end = (pw_index + pw_length) * AES.block_size
-    pfile = open(PFILE_URL, 'wb+')
+    pfile = open(PFILE_URL, 'rb')
     pfile_ct = pfile.read()
+    pfile.close()
 
+    first_chunk = pfile_ct[:pw_start]
+    second_chunk = pfile_ct[pw_end:]
     rand_bytes = get_random_bytes(pw_length * AES.block_size)
     print(rand_bytes)
 
-    pfile_ct = pfile_ct[:pw_start] + rand_bytes + pfile_ct[pw_end:]
-
-    pfile.write(pfile_ct)
+    new_pfile_ct = first_chunk + rand_bytes + second_chunk
+    pfile = open(PFILE_URL, 'wb')
+    pfile.write(new_pfile_ct)
     pfile.close()
 
 
