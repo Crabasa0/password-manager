@@ -261,7 +261,7 @@ def change_master_pw(new_pw):
     new_directory_iv = get_random_bytes(AES.block_size)
 
     #early exit: empty directory (no passwords)
-    if acct_directory = []:
+    if acct_directory == []:
         vh_file = open(VERIFICATION_HASH_URL, 'wb')
         vh_file.write(new_ver_key)
         vh_file.close()
