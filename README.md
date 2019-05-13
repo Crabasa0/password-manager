@@ -21,13 +21,13 @@ In progress:
 
 Interfaces (stubbed out), 
 Memory "safety",
-Add an account
 
 
 Complete: 
 login,
 setup,
-random password generation
+random password generation,
+add an account
 
 
 Topics to investigate:
