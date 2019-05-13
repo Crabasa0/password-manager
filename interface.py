@@ -103,13 +103,37 @@ def view_accts_menu():
     impl.proceed_if_valid_login()
     print('All Acounts:')
     impl.print_accts()
-    
+
     main_menu()
 
 def modify_acct_menu():
     impl.proceed_if_valid_login()
     print('Modify an Account')
     results = lookup_choice_menu()
+    print('Results: ')
+    for i in range(0, len(results)):
+        print(i, ': ', impl.acct_directory[results[i]])
+    if len(results) > 0:
+        right_choice = False
+        while not right_choice:
+            account_to_modify = input('Type the number of the account you wish to modify: ')
+            confirm_modify = input('Are you sure that you want to modify account number ' + account_to_modify + '? (y or n) ')
+            if confirm_modify =='y':
+                #Currently doesn't deal with cases where the user doesn't type a number
+                if int(account_to_modify) < len(results):
+                    right_choice = True
+                    index_to_modify = results[int(account_to_modify)]
+                    impl.modify_acct(index_to_modify)
+                    print('Account Modified')
+                else:
+                    print('That index is not valid. Please enter a valid index')
+            elif confirm_delete == 'n':
+                right_choice = True
+                print('Canceling modification...')
+    else:
+        print('No accounts matched your search')
+
+
     main_menu()
 
 def delete_acct_menu():
@@ -141,7 +165,7 @@ def delete_acct_menu():
     else:
         print('No accounts matched your search')
     main_menu()
-    
+
 
 def change_master_pw_menu():
     impl.proceed_if_valid_login()
