@@ -129,6 +129,8 @@ def get_random_pw():
     for c in pw_char_list:
         c = '0'
 
+    return rand_pw
+
 
 #Decrypt, load directory file
 def load_directory():
