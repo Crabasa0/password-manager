@@ -13,6 +13,7 @@ from os.path import isfile
 import datetime
 import string
 import json
+import pyperclip
 
 #Constants
 ver_salt = '12345678'
@@ -21,13 +22,13 @@ mac_salt = 'qwertyui'
 
 VERIFICATION_HASH_URL = 'verification-hash'
 
-RAND_PW_SIZE = 14
 
 DIRECTORY_URL = 'directory'
 PFILE_URL = 'pfile'
 PFILE_NONCE_URL = 'pfile-nonce'
 PFILE_MAC_URL = 'pfile-mac'
 
+RAND_PW_SIZE = 14
 MAC_LENGTH = 32
 
 #lateinits
@@ -86,16 +87,24 @@ def check_good_pw(p):
 
 #registering an account
 def register_acct(name, url, username, password):
+	global acct_directory
+
+	if not acct_directory:
+		load_directory()
+	index = get_pfile_len()
+	new_entry = {"Name":name, "URL":url, "Username":username, "PW_index":index}
+	add_pw_to_pfile(password)
+	acct_directory.append(new_entry)
+
+	write_acct_info_file()
+
+
+#encrypt the accounts in the directory and write the result to
+#the directory file
+def write_acct_info_file():
     global acct_directory
     global enc_key
     global mac_key
-
-    if not acct_directory:
-        load_directory()
-    index = get_pfile_len()
-    new_entry = {"Name":name, "URL":url, "Username":username, "PW_index":index}
-    add_pw_to_pfile(password)
-    acct_directory.append(new_entry)
 
     plaintext = pad(json.dumps(acct_directory).encode('utf-8'), AES.block_size)
     iv = get_random_bytes(AES.block_size)
@@ -112,7 +121,7 @@ def register_acct(name, url, username, password):
     dir_file.write(enc_accounts)
     dir_file.close()
 
-    pass
+
 
 
 def get_random_pw():
@@ -126,8 +135,7 @@ def get_random_pw():
     for c in pw_char_list:
         c = '0'
 
-	#DEBUGGING. BE CAREFUL. REMOVE THIS
-    print('[DEBUG] Random password was: ' + rand_pw)
+
     return rand_pw
 
 
@@ -199,6 +207,34 @@ def selective_encrypt(data, index): #Finished, i think
     encrypted = ENC.encrypt(data)
     return encrypted
 
+def selective_decrypt(index): #spaghetti code warning
+    nonce = retrieve_nonce()
+    block_offset = 0
+    DEC = AES.new(enc_key, AES.MODE_CTR, nonce=nonce, initial_value=index+block_offset)
+    file_pos = index * AES.block_size
+    pfile = open(PFILE_URL, 'rb')
+    pfile_ct = pfile.read()
+    first_block = pfile_ct[file_pos:file_pos+AES.block_size]
+    fb_dectrypted = DEC.decrypt(first_block)
+    try:
+        pw_bytes = unpad(fb_dectrypted, AES.block_size)
+    except ValueError:
+        #not done yet
+        blocks_dec = fb_dectrypted
+        done = False
+        while not done:
+            block_offset += 1
+            DEC = AES.new(enc_key, AES.MODE_CTR, nonce=nonce, initial_value=index+block_offset)
+            block = pfile_ct[(index + block_offset)*AES.block_size:(index + block_offset+1)*AES.block_size]
+            decrypted_block = DEC.decrypt(block)
+            blocks_dec += decrypted_block
+            try:
+                pw_bytes = unpad(blocks_dec, AES.block_size)
+                done = True
+            except ValueError:
+                pass
+    return pw_bytes
+
 
 def retrieve_nonce():
 #do we want to store the nonce as plaintext?
@@ -224,30 +260,49 @@ def print_accts():
         print ('Service: ', acct_directory[i]['Name'])
         print ('URL: ', acct_directory[i]['URL'])
         print ('Username: ', acct_directory[i]['Username'])
+        print('')
 
 
 def search_by_service_name(name):
     global acct_directory
+    accts_that_match = []
 
     if not acct_directory:
-        load_directory()
-    pass
+    	load_directory()
+
+    for i in range(0, len(acct_directory)):
+    	if acct_directory[i]['Name'] == name:
+    		accts_that_match.append(i)
+
+    return accts_that_match
 
 
 def search_by_url(url):
     global acct_directory
+    accts_that_match = []
 
     if not acct_directory:
-        load_directory()
-    pass
+    	load_directory()
+
+    for i in range(0, len(acct_directory)):
+    	if acct_directory[i]['URL'] == url:
+    		accts_that_match.append(i)
+
+    return accts_that_match
 
 
 def search_by_username(username):
     global acct_directory
+    accts_that_match = []
 
     if not acct_directory:
-        load_directory()
-    pass
+    	load_directory()
+
+    for i in range(0, len(acct_directory)):
+    	if acct_directory[i]['Username'] == username:
+    		accts_that_match.append(i)
+
+    return accts_that_match
 
 def change_master_pw(new_pw):
     global enc_key
@@ -325,6 +380,40 @@ def change_master_pw(new_pw):
     enc_key = new_enc_key
     mac_key = new_mac_key
     ver_key = new_ver_key
+
+#delete an account
+def delete_acct(acct_index):
+	global acct_directory
+	if not acct_directory:
+		load_directory()
+
+	#get the password index and the length of the password in blocks
+	pw_idx = int(acct_directory[acct_index]['PW_index'])
+	if acct_index+1 < len(acct_directory):
+		pw_block_length = int(acct_directory[acct_index+1]['PW_index']) - pw_idx
+	else:
+		pw_block_length = get_pfile_len - pw_idx
+
+	#remove the account from the account directory and rewrite the file
+	del acct_directory[acct_index]
+	write_acct_info_file()
+
+	delete_password(pw_idx, pw_block_length)
+
+
+#delete a password
+def delete_password(pw_index, pw_length): #TODO
+	pass
+
+
+def copy_pw(acct_index):
+    account = acct_directory[acct_index]
+    pw_index = account['PW_index']
+	#decrypt the selected password
+    pw_bytes = selective_decrypt(pw_index)
+    pw_to_copy = pw_bytes.decode('utf-8')
+    pyperclip.copy(pw_to_copy)
+    
 
 
 
