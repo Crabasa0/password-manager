@@ -24,7 +24,6 @@ mac_salt = 'qwertyui'
 
 VERIFICATION_HASH_URL = 'verification-hash'
 
-
 DIRECTORY_URL = 'directory'
 PFILE_URL = 'pfile'
 PFILE_NONCE_URL = 'pfile-nonce'
@@ -94,16 +93,16 @@ def check_good_pw(p):
 
 #registering an account
 def register_acct(name, url, username, password):
-	global acct_directory
+    global acct_directory
 
-	if not acct_directory:
-		load_directory()
-	index = get_pfile_len()
-	new_entry = {"Name":name, "URL":url, "Username":username, "PW_index":index}
-	add_pw_to_pfile(password)
-	acct_directory.append(new_entry)
+    if not acct_directory:
+        load_directory()
+    index = get_pfile_len()
+    new_entry = {"Name":name, "URL":url, "Username":username, "PW_index":index}
+    add_pw_to_pfile(password)
+    acct_directory.append(new_entry)
 
-	write_acct_info_file()
+    write_acct_info_file()
 
 
 #encrypt the accounts in the directory and write the result to
@@ -129,8 +128,6 @@ def write_acct_info_file():
     dir_file.close()
 
 
-
-
 def get_random_pw():
     char_source = string.ascii_letters + ' ' + string.digits + string.punctuation
     pw_char_list = ['0']*RAND_PW_SIZE   #init at the correct size to prevent copies
@@ -141,7 +138,6 @@ def get_random_pw():
     #memory 'safety'
     for c in pw_char_list:
         c = '0'
-
 
     return rand_pw
 
@@ -275,41 +271,40 @@ def search_by_service_name(name):
     accts_that_match = []
 
     if not acct_directory:
-    	load_directory()
+        load_directory()
 
     for i in range(0, len(acct_directory)):
-    	if acct_directory[i]['Name'] == name:
-    		accts_that_match.append(i)
+        if acct_directory[i]['Name'] == name:
+            accts_that_match.append(i)
 
     return accts_that_match
-
 
 def search_by_url(url):
     global acct_directory
     accts_that_match = []
 
     if not acct_directory:
-    	load_directory()
+        load_directory()
 
     for i in range(0, len(acct_directory)):
-    	if acct_directory[i]['URL'] == url:
-    		accts_that_match.append(i)
+        if acct_directory[i]['URL'] == url:
+            accts_that_match.append(i)
 
     return accts_that_match
-
 
 def search_by_username(username):
     global acct_directory
     accts_that_match = []
 
     if not acct_directory:
-    	load_directory()
+        load_directory()
 
     for i in range(0, len(acct_directory)):
-    	if acct_directory[i]['Username'] == username:
-    		accts_that_match.append(i)
+        if acct_directory[i]['Username'] == username:
+            accts_that_match.append(i)
 
     return accts_that_match
+
 
 def change_master_pw(new_pw):
     global enc_key
@@ -380,43 +375,58 @@ def change_master_pw(new_pw):
     vh_file.write(new_ver_key)
     vh_file.close()
 
-
-
     #update the keys in use
-
     enc_key = new_enc_key
     mac_key = new_mac_key
     ver_key = new_ver_key
 
 #delete an account
 def delete_acct(acct_index):
-	global acct_directory
-	if not acct_directory:
-		load_directory()
+    global acct_directory
+    if not acct_directory:
+        load_directory()
 
-	#get the password index and the length of the password in blocks
-	pw_idx = int(acct_directory[acct_index]['PW_index'])
-	if acct_index+1 < len(acct_directory):
-		pw_block_length = int(acct_directory[acct_index+1]['PW_index']) - pw_idx
-	else:
-		pw_block_length = get_pfile_len - pw_idx
+    #get the password index and the length of the stored password in blocks
+    pw_idx = int(acct_directory[acct_index]['PW_index'])
+    if acct_index+1 < len(acct_directory):
+        pw_block_length = int(acct_directory[acct_index+1]['PW_index']) - pw_idx
+    else:
+        pfile_len = get_pfile_len()
+        pw_block_length = pfile_len - pw_idx
 
-	#remove the account from the account directory and rewrite the file
-	del acct_directory[acct_index]
-	write_acct_info_file()
+    #remove the account from the account directory and rewrite the file
+    del acct_directory[acct_index]
+    write_acct_info_file()
 
-	delete_password(pw_idx, pw_block_length)
+    print('pw index: ' + str(pw_idx))
+    print('pw_block_length: ' + str(pw_block_length))
+    delete_password(pw_idx, pw_block_length)
 
 
 #delete a password
 def delete_password(pw_index, pw_length): #TODO
-	pass
+    pw_start = pw_index * AES.block_size
+    pw_end = (pw_index + pw_length) * AES.block_size
+    pfile = open(PFILE_URL, 'rb')
+    pfile_ct = pfile.read()
+    pfile.close()
+
+    first_chunk = pfile_ct[:pw_start]
+    second_chunk = pfile_ct[pw_end:]
+    rand_bytes = get_random_bytes(pw_length * AES.block_size)
+    print(rand_bytes)
+
+    new_pfile_ct = first_chunk + rand_bytes + second_chunk
+    pfile = open(PFILE_URL, 'wb')
+    pfile.write(new_pfile_ct)
+    pfile.close()
+
 
 
 def copy_pw(acct_index):
     account = acct_directory[acct_index]
     pw_index = account['PW_index']
-	#decrypt the selected password
+    #decrypt the selected password
     pw_bytes = selective_decrypt(pw_index)
     pw_to_copy = pw_bytes.decode('utf-8')
     pyperclip.copy(pw_to_copy)
@@ -431,6 +441,25 @@ def proceed_if_valid_login():
 #        time.sleep(2)
 #        print('hello!')
 
+
+def proceed_if_valid_login():
+    if not check_login_valid():
+        print('Your login window has expired. Please restart the program to continue')
+        exit()
+
+#class TimerThread(Thread):
+#    def run(self):
+#        time.sleep(2)
+#        print('hello!')
+
+
+def debug_all_passwords():
+    DEC = AES.new(enc_key, AES.MODE_CTR, nonce=retrieve_nonce(), initial_value=0)
+    pfile = open(PFILE_URL, 'rb')
+    pfile_ct = pfile.read()
+    pfile.close()
+    decrypted_pfile = DEC.decrypt(pfile_ct)
+    print(decrypted_pfile)
 
 
 pass
